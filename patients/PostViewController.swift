@@ -63,7 +63,11 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
         //cellにセット
         //let healthdata = healthdataArray[indexPath.row]
         //let healthdataArray2 = try! Realm().objects(HealthData.self).filter("nurseid == userdata.id").sorted(byKeyPath: "date", ascending: false)
-        let healthdata = healthdataArray.filter("nurseid == userdata.id")[indexPath.row]
+        //let healthdata = healthdataArray.filter("nurseid == %@",uid)[indexPath.row]
+        let healthdataArray2 = try! Realm().objects(HealthData.self).filter("nurseid == %@",uid).sorted(byKeyPath: "date", ascending: false)
+        let healthdata = healthdataArray2[indexPath.row]
+
+        //try! Realm().objects(ToDo).filter("category == %@ && name == %@", text, name)
         //print(healthdata)
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
