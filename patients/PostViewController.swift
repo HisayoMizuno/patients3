@@ -22,37 +22,53 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
     let realm = try! Realm()
     var userdata:Userdata!  // 渡ってくる
     let healthData = List<HealthData>()
-    //let userdataArray = try! Realm().objects(Userdata.self).sorted(byKeyPath: "date", ascending: false)
-    let healthdataArray = try! Realm().objects(HealthData.self).sorted(byKeyPath: "date", ascending: false)
-    //let healthdataArray = try! Realm().objects(HealthData.self).filter("nurseid = 2").sorted(byKeyPath: "date", ascending: false)
+    var uid = 0
+    var healthdataArray: Results<HealthData>?
+    var userdataArray: Results<Userdata>?
 
     // 入力画面から戻ってきた時に TableView を更新させる
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         tableView.reloadData()
     }
+    //------------------------------------------------
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.delegate = self
         tableView.dataSource = self
-        print("DEBUG:",  userdata.id)
-        let UID = userdata.id
-        print(UID)
-       
+
+        uid = userdata.id
+        print("uuid")
+        healthdataArray = try! Realm().objects(HealthData.self).filter("nurseid == %@",uid).sorted(byKeyPath: "date", ascending: false)
+
+        for a in healthdataArray! {
+            print("nurse= \(a.nurseid) : weight= \(a.weight)")
+        }
+        
+        userdataArray = try! Realm().objects(Userdata.self).filter("id=%@",uid).sorted(byKeyPath: "date", ascending: false)
+        for b in userdataArray! {
+            print("uid= \(b.id) : name= \(b.name)")
+        }
+        
         viewname.text = userdata.name
         viewage.text = String(userdata.age)
         viewsex.text = userdata.sex
     }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
     }
+    //---------------------------------------
+
     
     
     
+    //--------------------------------------------------------------------------------------------
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         print("count")
-        print(healthdataArray.count)
-        return healthdataArray.count
+        
+        return (healthdataArray?.count)!
+        //return userdata.healthData.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -64,39 +80,36 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
         //let healthdata = healthdataArray[indexPath.row]
         //let healthdataArray2 = try! Realm().objects(HealthData.self).filter("nurseid == userdata.id").sorted(byKeyPath: "date", ascending: false)
         //let healthdata = healthdataArray.filter("nurseid == %@",uid)[indexPath.row]
-        let healthdataArray2 = try! Realm().objects(HealthData.self).filter("nurseid == %@",uid).sorted(byKeyPath: "date", ascending: false)
-        let healthdata = healthdataArray2[indexPath.row]
-
+        //let healthdataArray2 = try! Realm().objects(HealthData.self).filter("nurseid == %@",uid).sorted(byKeyPath: "date", ascending: false)
+        
+        let healthdata = healthdataArray?[indexPath.row]
+        //let healthdata = userdata.healthData[indexPath.row]
+        
         //try! Realm().objects(ToDo).filter("category == %@ && name == %@", text, name)
         //print(healthdata)
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
-        let dateString:String = formatter.string(from: healthdata.date)
+        let dateString:String = formatter.string(from: (healthdata?.date)!)
         cell.textLabel?.text = dateString
         return cell
-
+        
     }
-    
     
     //登録実行
     @IBAction func healthdataAdd(_ sender: Any) {
-        //let UID = userdata.id
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy/MM/dd HH:mm:ss"
         let health = HealthData(value: [
-            //"museid"  : 10 ,
-            "nurseid"  : userdata.id ,
+            "nurseid" : userdata.id ,
             "weight"  : Int(self.weightTextField.text!),
             "bloodmax": Int(self.bloodmaxTextField.text!),
             "bloodmin": Int(self.bloodminTextField.text!)
-         ])
+        ])
         try! realm.write {
-            //userdata.healthData.append(health)
             userdata.healthData.append(health)
         }
     }
     
-
-
-
 }
+
+
