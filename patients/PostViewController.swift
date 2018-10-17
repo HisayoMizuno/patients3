@@ -16,8 +16,14 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
     @IBOutlet weak var viewname: UILabel! //名前
     @IBOutlet weak var viewsex: UILabel! //性別
     @IBOutlet weak var viewage: UILabel! //年齢
+    
+    //@IBOutlet weak var varwage: UILabel! //年齢
     //@IBOutlet weak var tableView: UITableView!
+    
     @IBOutlet weak var tableView: UITableView!
+    
+    @IBOutlet weak var addButon: UIButton!
+    @IBOutlet weak var modButon: UIButton!
     
     let realm = try! Realm()
     var userdata:Userdata!  // 渡ってくる
@@ -51,8 +57,10 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
         }
         
         viewname.text = userdata.name
-        viewage.text = String(userdata.age)
+        viewname.text = String(userdata.age)
         viewsex.text = userdata.sex
+        modButon.isHidden = true //変更実行　無効化
+
     }
     
     override func didReceiveMemoryWarning() {
@@ -62,6 +70,7 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
 
     
     
+
     
     //--------------------------------------------------------------------------------------------
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -77,16 +86,7 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
         print("cccccc")
         print(uid)
         //cellにセット
-        //let healthdata = healthdataArray[indexPath.row]
-        //let healthdataArray2 = try! Realm().objects(HealthData.self).filter("nurseid == userdata.id").sorted(byKeyPath: "date", ascending: false)
-        //let healthdata = healthdataArray.filter("nurseid == %@",uid)[indexPath.row]
-        //let healthdataArray2 = try! Realm().objects(HealthData.self).filter("nurseid == %@",uid).sorted(byKeyPath: "date", ascending: false)
-        
         let healthdata = healthdataArray?[indexPath.row]
-        //let healthdata = userdata.healthData[indexPath.row]
-        
-        //try! Realm().objects(ToDo).filter("category == %@ && name == %@", text, name)
-        //print(healthdata)
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
         let dateString:String = formatter.string(from: (healthdata?.date)!)
@@ -94,21 +94,116 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
         return cell
         
     }
-    
-    //登録実行
-    @IBAction func healthdataAdd(_ sender: Any) {
+    // セルが選択された時に実行されるメソッド
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        modButon.isHidden = false //有効化
+        addButon.isHidden = true //無効化
+        //let a = self.tableView.indexPathForSelectedRow
+        let healthdata = healthdataArray?[indexPath.row]
+        weightTextField.text = healthdata?.weight.description
+        bloodmaxTextField.text = healthdata?.bloodmax.description
+        bloodminTextField.text = healthdata?.bloodmin.description
+    }
+        
+    //変更実行時
+    @IBAction func healthdataMod(_ sender: Any) {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy/MM/dd HH:mm:ss"
-        let health = HealthData(value: [
-            "nurseid" : userdata.id ,
-            "weight"  : Int(self.weightTextField.text!),
-            "bloodmax": Int(self.bloodmaxTextField.text!),
-            "bloodmin": Int(self.bloodminTextField.text!)
-        ])
-        try! realm.write {
-            userdata.healthData.append(health)
+        if self.weightTextField.text == "" {
+            print("NULLA")
+            viewAlert(sts: 1)
+        }
+        else if self.bloodmaxTextField.text == "" {
+            print("NULLB")
+            viewAlert(sts: 2)
+        }
+        else if self.bloodminTextField.text == "" {
+            print("NULLC")
+            viewAlert(sts: 3)
+        }
+        else {
+            var health = HealthData(value: [
+                "nurseid" : userdata.id ,
+                "weight"  : Int(self.weightTextField.text!),
+                "bloodmax": Int(self.bloodmaxTextField.text!),
+                "bloodmin": Int(self.bloodminTextField.text!)
+            ])
+            
+            userdata.healthData.weight = 200
+            //変更処理
+            try! realm.write {
+                //userdata.healthData.append(health)
+                realm.add(healthData, update: true)
+                
+            }
+            tableView.reloadData()
+            //入力項目をセットする
+            self.weightTextField.text = ""
+            self.bloodmaxTextField.text = ""
+            self.bloodminTextField.text = ""
+            viewAlert(sts: 0)
         }
     }
+    //登録実行
+    @IBAction func healthdataAdd(_ sender: Any) {
+        //viewAlert()
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy/MM/dd HH:mm:ss"
+        if self.weightTextField.text == "" {
+            print("NULLA")
+            viewAlert(sts: 1)
+        }
+        else if self.bloodmaxTextField.text == "" {
+             print("NULLB")
+            viewAlert(sts: 2)
+        }
+        else if self.bloodminTextField.text == "" {
+            print("NULLC")
+            viewAlert(sts: 3)
+        }
+        else {
+            let health = HealthData(value: [
+                "nurseid" : userdata.id ,
+                "weight"  : Int(self.weightTextField.text!),
+                "bloodmax": Int(self.bloodmaxTextField.text!),
+                "bloodmin": Int(self.bloodminTextField.text!)
+            ])
+            //登録処理
+            try! realm.write {
+                userdata.healthData.append(health)
+            }
+            tableView.reloadData()
+            //入力項目をセットする
+            self.weightTextField.text = ""
+            self.bloodmaxTextField.text = ""
+            self.bloodminTextField.text = ""
+            viewAlert(sts: 0)
+        }
+    }
+    //--------------------------
+    func viewAlert(sts: Int) {
+        var msg = ""
+        var ngword = "NG!入力確認"
+        switch sts {
+        case 1 :  msg = "体重が入力されていません"; break
+        case 2 :  msg = "血圧（上）体重が入力されていません"; break
+        case 3 :  msg = "血圧（下）体重が入力されていません"; break
+        case 4 :  msg = "変更実行しました"; break
+        default: //0の時
+            msg    = "入力完了です";
+            ngword = "OK";
+            break
+        }
+        let title = "入力確認のポップアップ"
+        let message = msg
+        let NGText = ngword
+        let alert = UIAlertController(title: title, message: message, preferredStyle: UIAlertControllerStyle.alert)
+        let okayButton = UIAlertAction(title: NGText, style: UIAlertActionStyle.cancel, handler: nil)
+        alert.addAction(okayButton)
+        present(alert, animated: true, completion: nil)
+        }
+    //--------------------------
+
     
 }
 
