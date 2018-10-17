@@ -128,8 +128,6 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
                 "bloodmax": Int(self.bloodmaxTextField.text!),
                 "bloodmin": Int(self.bloodminTextField.text!)
             ])
-            
-            userdata.healthData.weight = 200
             //変更処理
             try! realm.write {
                 //userdata.healthData.append(health)
