@@ -17,17 +17,21 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
     // DB内のタスクが格納されるリスト。
     var userdataArray = try! Realm().objects(Userdata.self).sorted(byKeyPath: "date", ascending: false)
     //
-    // 入力画面から戻ってきた時に TableView を更新させる
+    // 戻ってきた時に TableView を更新させる
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         tableView.reloadData()
     }
+    //画面が戻ってきた時
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.reloadData()
+
         // Do any additional setup after loading the view.
     }
+
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -89,5 +93,7 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
     }
     
     @IBAction func unwind(_ segue: UIStoryboardSegue) {
+        tableView.reloadData() //画面に戻った時、一覧を更新しておく
+
     }
 }
