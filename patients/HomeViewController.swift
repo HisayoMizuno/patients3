@@ -69,15 +69,23 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
     
     // ユーザー追加ボタンタップ時
     @IBAction func useraddButton(_ sender: UIButton) {
-        print("DEBUG_PRINT: ユーザ追加ボタンがタップされました")
         let useraddViewController = self.storyboard?.instantiateViewController(withIdentifier: "Useradd") as! UseraddViewController
+        useraddViewController.modalPresentationStyle = .overCurrentContext
+        useraddViewController.view.backgroundColor = UIColor(red:0.94, green:0.94, blue:0.96, alpha:0.9)
+
         present(useraddViewController, animated: true, completion: nil)
     }
-    //segue
+    //segue準備
     override func prepare(for segue: UIStoryboardSegue, sender: Any?){
-        let indexPath = self.tableView.indexPathForSelectedRow
-        let postViewController:PostViewController = segue.destination as! PostViewController
-        postViewController.userdata = userdataArray[indexPath!.row]
+        //if  (segue.identifier == "cellSegue") {
+            let indexPath = self.tableView.indexPathForSelectedRow
+            let postViewController:PostViewController = segue.destination as! PostViewController
+            postViewController.userdata = userdataArray[indexPath!.row]
+            postViewController.modalPresentationStyle = .overCurrentContext
+            postViewController.view.backgroundColor = UIColor(red:0.94, green:0.94, blue:0.96, alpha:0.9)
+
+
+       // }
     }
     
     @IBAction func unwind(_ segue: UIStoryboardSegue) {

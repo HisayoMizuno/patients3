@@ -16,12 +16,9 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
     @IBOutlet weak var viewname: UILabel! //名前
     @IBOutlet weak var viewsex: UILabel! //性別
     @IBOutlet weak var viewage: UILabel! //年齢
-    
-    //@IBOutlet weak var varwage: UILabel! //年齢
-    //@IBOutlet weak var tableView: UITableView!
+
     
     @IBOutlet weak var tableView: UITableView!
-    
     @IBOutlet weak var addButon: UIButton!
     @IBOutlet weak var modButon: UIButton!
     
@@ -31,6 +28,7 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
     var uid = 0
     var healthdataArray: Results<HealthData>?
     var userdataArray: Results<Userdata>?
+    var index = 0
 
     // 入力画面から戻ってきた時に TableView を更新させる
     override func viewWillAppear(_ animated: Bool) {
@@ -57,7 +55,7 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
         }
         
         viewname.text = userdata.name
-        viewname.text = String(userdata.age)
+        viewage.text = String(userdata.age)
         viewsex.text = userdata.sex
         modButon.isHidden = true //変更実行　無効化
 
@@ -76,8 +74,8 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         print("count")
         
-        return (healthdataArray?.count)!
-        //return userdata.healthData.count
+        //return (healthdataArray?.count)!
+        return userdata.healthData.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -86,16 +84,24 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
         print("cccccc")
         print(uid)
         //cellにセット
-        let healthdata = healthdataArray?[indexPath.row]
+        //let healthdata = healthdataArray?[indexPath.row]
+        let healthdata = userdata.healthData[indexPath.row]
+
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
-        let dateString:String = formatter.string(from: (healthdata?.date)!)
+        let dateString:String = formatter.string(from: (healthdata.date))
         cell.textLabel?.text = dateString
+        cell.detailTextLabel?.text = String(healthdata.weight)
+
+        print("体重　== \(healthdata.weight)")
         return cell
         
     }
     // セルが選択された時に実行されるメソッド
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        index = indexPath.row
+        print("-------------")
+        print(index)
         modButon.isHidden = false //有効化
         addButon.isHidden = true //無効化
         //let a = self.tableView.indexPathForSelectedRow
@@ -107,6 +113,7 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
         
     //変更実行時
     @IBAction func healthdataMod(_ sender: Any) {
+
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy/MM/dd HH:mm:ss"
         if self.weightTextField.text == "" {
@@ -129,17 +136,22 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
                 "bloodmin": Int(self.bloodminTextField.text!)
             ])
             //変更処理
+            print("before: \(userdata.healthData)")
             try! realm.write {
                 //userdata.healthData.append(health)
-                realm.add(healthData, update: true)
-                
+                //userdata.healthData.replace(index: 0, object: health)
+                userdata.healthData.replace(index: index, object: health)
             }
+            print("after: \(userdata.healthData)")
             tableView.reloadData()
+            addButon.isHidden = false //変更実行　有効化
+            modButon.isHidden = true //変更実行　無効化
             //入力項目をセットする
             self.weightTextField.text = ""
             self.bloodmaxTextField.text = ""
             self.bloodminTextField.text = ""
             viewAlert(sts: 0)
+            
         }
     }
     //登録実行
@@ -178,6 +190,23 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
             viewAlert(sts: 0)
         }
     }
+    // 削除
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            // データベースから削除する  // ←以降追加する
+            try! realm.write {
+                userdata.healthData.remove(at: index)
+            }
+        }
+        tableView.reloadData()
+        addButon.isHidden = false //変更実行　有効化
+        modButon.isHidden = true //変更実行　無効化
+        //入力項目をセットする
+        self.weightTextField.text = ""
+        self.bloodmaxTextField.text = ""
+        self.bloodminTextField.text = ""
+        viewAlert(sts: 5)
+    }
     //--------------------------
     func viewAlert(sts: Int) {
         var msg = ""
@@ -187,6 +216,8 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
         case 2 :  msg = "血圧（上）体重が入力されていません"; break
         case 3 :  msg = "血圧（下）体重が入力されていません"; break
         case 4 :  msg = "変更実行しました"; break
+        case 5 :  msg = "削除実行しました"; break
+        case 6 :  msg = "削除してもよいですか"; break
         default: //0の時
             msg    = "入力完了です";
             ngword = "OK";
