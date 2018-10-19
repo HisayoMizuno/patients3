@@ -42,8 +42,8 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
         tableView.dataSource = self
 
         uid = userdata.id
-        print("uuid")
-        healthdataArray = try! Realm().objects(HealthData.self).filter("nurseid == %@",uid).sorted(byKeyPath: "date", ascending: false)
+        print("uid")
+        healthdataArray = try! Realm().objects(HealthData.self).filter("nurseid == %@",uid).sorted(byKeyPath: "date", ascending: true)
 
         for a in healthdataArray! {
             print("nurse= \(a.nurseid) : weight= \(a.weight)")
@@ -73,7 +73,6 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
     //--------------------------------------------------------------------------------------------
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         print("count")
-        
         //return (healthdataArray?.count)!
         return userdata.healthData.count
     }
@@ -81,8 +80,6 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell2", for: indexPath)
         let uid = userdata.id
-        print("cccccc")
-        print(uid)
         //cellにセット
         //let healthdata = healthdataArray?[indexPath.row]
         let healthdata = userdata.healthData[indexPath.row]
@@ -92,8 +89,6 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
         let dateString:String = formatter.string(from: (healthdata.date))
         cell.textLabel?.text = dateString
         cell.detailTextLabel?.text = String(healthdata.weight)
-
-        print("体重　== \(healthdata.weight)")
         return cell
         
     }
@@ -105,15 +100,22 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
         modButon.isHidden = false //有効化
         addButon.isHidden = true //無効化
         //let a = self.tableView.indexPathForSelectedRow
-        let healthdata = healthdataArray?[indexPath.row]
-        weightTextField.text = healthdata?.weight.description
-        bloodmaxTextField.text = healthdata?.bloodmax.description
-        bloodminTextField.text = healthdata?.bloodmin.description
+        //let healthdata = healthdataArray?[indexPath.row]
+        
+        //let healthdata = healthdataArray?[indexPath.row]
+        
+        let healthdata = userdata.healthData[indexPath.row]
+        
+        weightTextField.text = healthdata.weight.description
+        bloodmaxTextField.text = healthdata.bloodmax.description
+        bloodminTextField.text = healthdata.bloodmin.description
+        print(healthdata.weight)
     }
         
     //変更実行時
     @IBAction func healthdataMod(_ sender: Any) {
-
+        print("-------------")
+        print("選択されたindex = \(index)")
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy/MM/dd HH:mm:ss"
         if self.weightTextField.text == "" {
@@ -138,9 +140,9 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
             //変更処理
             print("before: \(userdata.healthData)")
             try! realm.write {
-                //userdata.healthData.append(health)
-                //userdata.healthData.replace(index: 0, object: health)
                 userdata.healthData.replace(index: index, object: health)
+                //userdata.healthData.replace(index: IndexPath.row, object: health)
+                
             }
             print("after: \(userdata.healthData)")
             tableView.reloadData()
@@ -195,7 +197,13 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
         if editingStyle == .delete {
             // データベースから削除する  // ←以降追加する
             try! realm.write {
-                userdata.healthData.remove(at: index)
+                //userdata.healthData.remove(at: index)
+                var a = userdata.healthData[index]
+                print(a)
+                print("aaaaaaa= \(a)")
+                //self.realm.delete(userdata.healthData[index])
+                //healthdataArray = try! Realm().objects(HealthData.self).filter("nurseid == %@",uid).sorted(byKeyPath: "date", ascending: true)
+                self.realm.delete(userdata.healthData[indexPath.row])
             }
         }
         tableView.reloadData()
@@ -205,7 +213,9 @@ class PostViewController: UIViewController, UITableViewDelegate, UITableViewData
         self.weightTextField.text = ""
         self.bloodmaxTextField.text = ""
         self.bloodminTextField.text = ""
+        tableView.reloadData()
         viewAlert(sts: 5)
+        
     }
     //--------------------------
     func viewAlert(sts: Int) {

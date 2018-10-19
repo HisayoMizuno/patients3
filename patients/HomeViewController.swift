@@ -16,7 +16,7 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
     let realm = try! Realm()
     // DB内のタスクが格納されるリスト。
     var userdataArray = try! Realm().objects(Userdata.self).sorted(byKeyPath: "date", ascending: false)
-    //
+
     // 戻ってきた時に TableView を更新させる
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -81,15 +81,11 @@ class HomeViewController: UIViewController, UITableViewDelegate, UITableViewData
     }
     //segue準備
     override func prepare(for segue: UIStoryboardSegue, sender: Any?){
-        //if  (segue.identifier == "cellSegue") {
-            let indexPath = self.tableView.indexPathForSelectedRow
-            let postViewController:PostViewController = segue.destination as! PostViewController
-            postViewController.userdata = userdataArray[indexPath!.row]
-            postViewController.modalPresentationStyle = .overCurrentContext
-            postViewController.view.backgroundColor = UIColor(red:0.94, green:0.94, blue:0.96, alpha:0.9)
-
-
-       // }
+        let indexPath = self.tableView.indexPathForSelectedRow
+        let postViewController:PostViewController = segue.destination as! PostViewController
+        postViewController.userdata = userdataArray[indexPath!.row]
+        postViewController.modalPresentationStyle = .overCurrentContext
+        postViewController.view.backgroundColor = UIColor(red:0.94, green:0.94, blue:0.96, alpha:0.9)
     }
     
     @IBAction func unwind(_ segue: UIStoryboardSegue) {
